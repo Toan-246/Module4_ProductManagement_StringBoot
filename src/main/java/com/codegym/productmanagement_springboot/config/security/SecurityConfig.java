@@ -65,7 +65,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/register").permitAll()
                 .antMatchers("/products/**")
                 .access("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
                 .and().csrf().disable();
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling().accessDeniedHandler(customAccessDeniedHandler());
