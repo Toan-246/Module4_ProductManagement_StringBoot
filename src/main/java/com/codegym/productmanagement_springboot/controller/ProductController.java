@@ -46,9 +46,11 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<Product> saveProduct(@ModelAttribute ProductForm productForm) {
+        Product product = new Product();
+        String fileName = null;
         MultipartFile img = productForm.getImage();
-        if (img.getSize() != 0) {
-            String fileName = img.getOriginalFilename();
+        if (img!=null && img.getSize() != 0) {
+            fileName = img.getOriginalFilename();
             long currentTime = System.currentTimeMillis();
             fileName = currentTime + fileName;
             try {
@@ -56,38 +58,27 @@ public class ProductController {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            Product product = new Product(productForm.getId(), productForm.getName(), productForm.getPrice(), productForm.getDescription(), fileName, productForm.getCategory());
-            return new ResponseEntity<>(productService.save(product), HttpStatus.CREATED);
         }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+//        product.setId(productForm.getId());
+        product.setName(productForm.getName());
+        product.setPrice(productForm.getPrice());
+        product.setDescription(productForm.getDescription());
+        product.setImage(fileName);
+        product.setCategory(productForm.getCategory());
+        return new ResponseEntity<>(productService.save(product), HttpStatus.CREATED);
     }
 
-    @PostMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @ModelAttribute ProductForm productForm) {
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
         Optional<Product> optionalProduct = productService.findById(id);
-        MultipartFile img = productForm.getImage();
-        if (optionalProduct.isPresent()) {
-            Product oldProduct = optionalProduct.get();
-            if (img.getSize() != 0) {
-                String fileName = img.getOriginalFilename();
-                long currentTime = System.currentTimeMillis();
-                fileName = currentTime + fileName;
-                oldProduct.setImage(fileName);
-                try {
-                    FileCopyUtils.copy(img.getBytes(), new File(uploadPath + fileName));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            }
-            oldProduct.setId(productForm.getId());
-            oldProduct.setName(productForm.getName());
-            oldProduct.setPrice(productForm.getPrice());
-            oldProduct.setDescription(productForm.getDescription());
-            oldProduct.setCategory(productForm.getCategory());
-            return new ResponseEntity<>(productService.save(oldProduct), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        Product oldProduct = optionalProduct.get();
+        oldProduct.setId(product.getId());
+        oldProduct.setName(product.getName());
+        oldProduct.setImage(product.getImage());
+        oldProduct.setPrice(product.getPrice());
+        oldProduct.setDescription(product.getDescription());
+        oldProduct.setCategory(product.getCategory());
+        return new ResponseEntity<>(productService.save(oldProduct), HttpStatus.OK);
     }
 
 
